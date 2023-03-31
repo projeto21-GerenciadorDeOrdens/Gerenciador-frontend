@@ -33,7 +33,7 @@ export default function SignIn() {
       const userData = await signIn(username, password);
       setUserData(userData);
       toast('Login realizado com sucesso!');
-      navigate('/main');
+      navigate('/edit');
     } catch (err) {
       toast('Não foi possível fazer o login!');
     }

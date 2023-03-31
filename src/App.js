@@ -4,7 +4,8 @@ import { ToastContainer } from 'react-toastify';
 import Countdown from './pages/Countdown';
 import Enroll from './pages/Enroll';
 import SignIn from './pages/SignIn';
-import Main from './pages/Main/Main';
+import Main from './pages/Main';
+import { Edit } from './components/Edit';
 
 import { EventInfoProvider } from './contexts/EventInfoContext';
 import { UserProvider } from './contexts/UserContext';
@@ -26,7 +27,8 @@ export default function App() {
                 <Route path="/enroll" element={<Enroll />} />
                 <Route path="/sign-in" element={<SignIn />} />
 
-                <Route path="/main" element={<Main />}></Route>
+                <Route path="/create" element={<Main />}></Route>
+                <Route path="/edit" element={<Edit />}></Route>
               </Routes>
             </Router>
           </HotelContext.Provider>

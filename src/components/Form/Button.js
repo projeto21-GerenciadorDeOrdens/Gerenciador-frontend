@@ -10,5 +10,7 @@ export default function Button({ variant='contained', children, ...props }) {
 }
 
 const StyledMuiButton = styled(MuiButton)`
+  width: 300px;
+  height: 50px;
   margin-top: 8px !important;
 `;
