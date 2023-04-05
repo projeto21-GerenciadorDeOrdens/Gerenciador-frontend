@@ -12,13 +12,21 @@ export const MainContainer = styled.div`
   background: ${(props) => props.background};
 `;
 
-export const InputContainer = styled.div`
-  width: 61%;
-  height: 650px;
+export const InputContainerEdit = styled.div`
   background: #ffffff;
   border-radius: 10px;
-  padding: 15px 20px 0 20px;
+  padding: 20px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+export const InputContainer = styled.div`
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 15px 20px 15px 20px;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
 `;
@@ -30,6 +38,16 @@ export const LineContainer = styled.div`
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
+`;
+
+export const LineContainerEdit = styled.div`
+  width: 100%;
+  border-radius: 10px;
+  padding: 0 5px 5px 5px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   align-items: center;
 `;
 
@@ -51,4 +69,24 @@ export const ButtonContainer = styled.div`
   flex-direction: row;
   justify-content: center;
   align-items: center;
+`;
+
+export const Summary = styled.div`
+  border: 2px solid lightgrey;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 3%;
+`;
+
+export const Function = styled.p`
+  font-size: 12px;
+  margin: 15px 40px 0px 40px;
+  border: 2px solid lightgrey;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #E8E8E8;
+  :hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
 `;

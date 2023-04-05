@@ -26,8 +26,10 @@ import {
   InputContainer,
   LineContainer,
   SubLineContainer,
+  Function,
 } from '../Containers/containers';
 import useToken from '../../hooks/useToken';
+import { postOrder } from '../../services/orders';
 
 dayjs.extend(CustomParseFormat);
 
@@ -51,19 +53,19 @@ export default function Order() {
     validations: FormValidations,
 
     onSubmit: async(data) => {
-      const newData = {
+      const body = {
         remetente: {
-          nome: data.remetente,
-          cidade: data.cidaderemetente,
+          nome: data.remetente.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
+          cidade: data.cidaderemetente.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
           estado: data.ufremetente,
         },
         destinatario: {
-          nome: data.destinatario,
-          cidade: data.cidadedestinatario,
+          nome: data.destinatario.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
+          cidade: data.cidadedestinatario.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
           estado: data.ufdestinatario,
         },
         motorista: {
-          nome: data.motorista,
+          nome: data.motorista.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
           placa: data.placa,
         },
         frete: data.frete,
@@ -84,9 +86,11 @@ export default function Order() {
       };
 
       try {
-        console.log(newData.valorTotal, newData.saldo);
+        console.log(body.remetente, body.destinatario, body.motorista);
+        await postOrder(token, body);
         toast('Ordem salva com sucesso!');
       } catch (err) {
+        console.log(err);
         toast('Não foi possível salvar suas informações!');
       }
     },
@@ -113,6 +117,10 @@ export default function Order() {
       observacao: '',
     },
   });
+
+  function nextScreen() {
+    navigate('/edit');
+  }
 
   return (
     <MainContainer background={eventInfo.backgroundImageUrl}>
@@ -382,6 +390,7 @@ export default function Order() {
           </form>
         </MuiPickersUtilsProvider>
       </InputContainer>
+      <Function onClick={nextScreen}>Ir para a seleção de ordens</Function>
     </MainContainer>
   );
 }

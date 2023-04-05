@@ -7,6 +7,7 @@ import InputLabel from '@material-ui/core/InputLabel';
 import styled from 'styled-components';
 
 const FormControlWrapper = styled.section`
+  width: 120px;
   margin-top: 8px;
   display: flex;
   flex-direction: column;
