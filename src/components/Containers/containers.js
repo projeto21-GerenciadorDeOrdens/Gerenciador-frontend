@@ -73,7 +73,8 @@ export const ButtonContainer = styled.div`
 
 export const Summary = styled.div`
   border: 2px solid lightgrey;
-  padding: 10px;
+  padding: 10px 0 10px 15px;
+  width: 85%;
   border-radius: 5px;
   margin-top: 3%;
 `;

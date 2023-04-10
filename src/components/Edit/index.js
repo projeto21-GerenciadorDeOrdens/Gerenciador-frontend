@@ -1,4 +1,4 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import dayjs from 'dayjs';
@@ -27,7 +27,7 @@ import {
   Function,
 } from '../Containers/containers';
 import useToken from '../../hooks/useToken';
-import get from './orders';
+import { searchOrders } from '../../services/orders';
 
 export function Edit() {
   const { eventInfo } = useContext(EventInfoContext);
@@ -39,16 +39,35 @@ export function Edit() {
     return navigate('/sign-in');
   }
 
-  const ordens = get();
-
   const [numeroOrdem, setNumeroOrdem] = useState('0');
   const [boolSearch, setBoolSearch] = useState(false);
+  const [boolOrders, setBoolOrders] = useState(true);
+  const [orders, setOrders] = useState([{ name: 'Não há ordens', id: 1 }]);
+  const [orderInfo, setOrderInfo] = useState({ none: 'none' });
 
-  function search() {
-    if (numeroOrdem == 0) {
-      return toast('Selecione uma ordem!');
+  useEffect(() => {
+    async function getOrders() {
+      const response = await searchOrders(token);
+      if (response.length !== 0) {
+        setBoolOrders(false);
+      }
+      setOrders(response);
     }
-    setBoolSearch(false);
+    getOrders();
+  }, [orders]);
+
+  function setInfo(value) {
+    if (orders.length === 0) {
+      setBoolSearch(false);
+      return;
+    }
+    setNumeroOrdem(value);
+    const newArr = orders.filter((e) => e.id == value);
+    if (newArr.length === 0) {
+      setBoolSearch(false);
+      return;
+    }
+    setOrderInfo(newArr);
     setBoolSearch(true);
   }
 
@@ -68,39 +87,35 @@ export function Edit() {
               label=""
               id="numeroordem"
               value={numeroOrdem}
-              onChange={(e) => setNumeroOrdem(e.target.value)}
+              onChange={(e) => setInfo(e.target.value)}
             >
-              <MenuItem value="">
-                <em>None</em>
+              <MenuItem disabled={boolOrders}>
+                <em>Não há ordens!</em>
               </MenuItem>
-              {ordens.map((o) => (
-                <MenuItem value={o.name} key={o.id}>
-                  <em>{o.name}</em>
+              {orders.map((o) => (
+                <MenuItem value={o.id} key={o.id}>
+                  <em>{o.id}</em>
                 </MenuItem>
               ))}
             </Select>
           </InputWrapper>
         </LineContainerEdit>
-        <LineContainerEdit>
-          <Button onClick={search}>Procurar ordem</Button>
-        </LineContainerEdit>
         {boolSearch === true ? (
           <>
             <Summary>
-              <LineContainerEdit>
-                <Word>De: Remetente</Word>
-                <SummaryWord>Para: Destinatário</SummaryWord>
-              </LineContainerEdit>
-              <LineContainerEdit>
-                <Word>Motorista: motorista</Word>
-                <SummaryWord>Placa: placa</SummaryWord>
-              </LineContainerEdit>
-              <LineContainerEdit>
-                <Word>Data: 00-00-0000</Word>
-              </LineContainerEdit>
-              <LineContainerEdit>
-                <Word>Saldo: $1000</Word>
-              </LineContainerEdit>
+              <Word>De: {orderInfo[0].Sender.city}</Word>
+              <SummaryWord>Para: {orderInfo[0].Recipient.city}</SummaryWord>
+
+              <Word>Motorista: {orderInfo[0].Driver.name}</Word>
+              <SummaryWord>Placa: {orderInfo[0].Driver.plate}</SummaryWord>
+
+              <Word>Data: {dayjs(orderInfo[0].createdAt).format('DD-MM-YYYY')}</Word>
+
+              <Word>
+                Saldo: $
+                {Number(orderInfo[0].freight) * (Number(orderInfo[0].weight) / 1000) -
+                  (Number(orderInfo[0].taxes) + Number(orderInfo[0].advance) + Number(orderInfo[0].gas))}
+              </Word>
             </Summary>
             <LineContainerEdit>
               <Function>Deletar ordem</Function>

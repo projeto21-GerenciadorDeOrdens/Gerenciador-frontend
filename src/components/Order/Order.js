@@ -29,18 +29,23 @@ import {
   Function,
 } from '../Containers/containers';
 import useToken from '../../hooks/useToken';
-import { postOrder } from '../../services/orders';
+import { postOrder, searchOrders } from '../../services/orders';
 
 dayjs.extend(CustomParseFormat);
 
 export default function Order() {
+  //elaborar a opção de zerar os inputs para a criação de outra ordem;
+  //elaborar telas de inserção de novos motoristas, remetentes e destinatários.
+  //elaborar uma forma de deixar os inputs com masks desabilitados
   const navigate = useNavigate();
   const token = useToken();
   if (!token) {
     return navigate('/sign-in');
   }
 
+  const [functionBoolean, setFunctionBoolean] = useState(false);
   const [saveOrderLoading, setSaveOrderLoading] = useState(false);
+  const [orderNumber, setOrderNumber] = useState('');
 
   const { eventInfo } = useContext(EventInfoContext);
 
@@ -49,23 +54,51 @@ export default function Order() {
     0: '[0123456789]',
   };
 
+  function refresh() {
+    window.location.reload(false);
+    setFunctionBoolean(true);
+  }
+
+  useEffect(() => {
+    async function getOrders() {
+      const retrieveOrders = await searchOrders(token);
+      setOrderNumber(retrieveOrders.length + 1);
+    }
+    getOrders();
+  }, []);
+
   const { handleSubmit, handleChange, data, errors, setData, customHandleChange } = useForm({
     validations: FormValidations,
 
     onSubmit: async(data) => {
       const body = {
         remetente: {
-          nome: data.remetente.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
-          cidade: data.cidaderemetente.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
+          nome: data.remetente
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase(),
+          cidade: data.cidaderemetente
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase(),
           estado: data.ufremetente,
         },
         destinatario: {
-          nome: data.destinatario.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
-          cidade: data.cidadedestinatario.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
+          nome: data.destinatario
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase(),
+          cidade: data.cidadedestinatario
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase(),
           estado: data.ufdestinatario,
         },
         motorista: {
-          nome: data.motorista.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase(),
+          nome: data.motorista
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toUpperCase(),
           placa: data.placa,
         },
         frete: data.frete,
@@ -80,15 +113,15 @@ export default function Order() {
           (Number(data.imposto) + Number(data.adiantamento) + Number(data.abastecimento)),
         cte: data.cte,
         valorcte: data.valorcte,
-        data: dayjs(data.data).toISOString(),
+        data: dayjs(data.data).format('YYYY-MM-DD'),
         usuario: data.usuario,
         observacao: data.observacao,
       };
 
       try {
-        console.log(body.remetente, body.destinatario, body.motorista);
         await postOrder(token, body);
         toast('Ordem salva com sucesso!');
+        setFunctionBoolean(true);
       } catch (err) {
         console.log(err);
         toast('Não foi possível salvar suas informações!');
@@ -135,6 +168,7 @@ export default function Order() {
                   type="text"
                   value={data?.remetente || ''}
                   onChange={handleChange('remetente')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.remetente && <ErrorMsg>{errors.remetente}</ErrorMsg>}
               </InputWrapper>
@@ -146,6 +180,7 @@ export default function Order() {
                     type="text"
                     value={data?.cidaderemetente || ''}
                     onChange={handleChange('cidaderemetente')}
+                    disabled={functionBoolean}
                   ></Input>
                   {errors.cidaderemetente && <ErrorMsg>{errors.cidaderemetente}</ErrorMsg>}
                 </InputWrapper>
@@ -156,6 +191,7 @@ export default function Order() {
                     id="state"
                     value={data?.ufremetente || ''}
                     onChange={handleChange('ufremetente')}
+                    disabled={functionBoolean}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -178,6 +214,7 @@ export default function Order() {
                   type="text"
                   value={data?.destinatario || ''}
                   onChange={handleChange('destinatario')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.destinatario && <ErrorMsg>{errors.destinatario}</ErrorMsg>}
               </InputWrapper>
@@ -189,6 +226,7 @@ export default function Order() {
                     type="text"
                     value={data?.cidadedestinatario || ''}
                     onChange={handleChange('cidadedestinatario')}
+                    disabled={functionBoolean}
                   ></Input>
                   {errors.cidadedestinatario && <ErrorMsg>{errors.cidadedestinatario}</ErrorMsg>}
                 </InputWrapper>
@@ -200,6 +238,7 @@ export default function Order() {
                     id="state"
                     value={data?.ufdestinatario || ''}
                     onChange={handleChange('ufdestinatario')}
+                    disabled={functionBoolean}
                   >
                     <MenuItem value="">
                       <em>None</em>
@@ -222,6 +261,7 @@ export default function Order() {
                   type="text"
                   value={data?.motorista || ''}
                   onChange={handleChange('motorista')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.motorista && <ErrorMsg>{errors.motorista}</ErrorMsg>}
               </InputWrapper>
@@ -250,6 +290,7 @@ export default function Order() {
                     type="text"
                     value={data?.frete.replace(',', '.') || ''}
                     onChange={handleChange('frete')}
+                    disabled={functionBoolean}
                   ></Input>
                   {errors.frete && <ErrorMsg>{errors.frete}</ErrorMsg>}
                 </InputWrapper>
@@ -261,6 +302,7 @@ export default function Order() {
                     type="text"
                     value={data?.peso.replace(',', '.') || ''}
                     onChange={handleChange('peso')}
+                    disabled={functionBoolean}
                   ></Input>
                   {errors.peso && <ErrorMsg>{errors.peso}</ErrorMsg>}
                 </InputWrapper>
@@ -274,6 +316,7 @@ export default function Order() {
                   type="text"
                   value={data?.pedagio.replace(',', '.') || ''}
                   onChange={handleChange('pedagio')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.pedagio && <ErrorMsg>{errors.pedagio}</ErrorMsg>}
               </InputWrapper>
@@ -285,6 +328,7 @@ export default function Order() {
                   type="text"
                   value={data?.imposto.replace(',', '.') || ''}
                   onChange={handleChange('imposto')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.pedagio && <ErrorMsg>{errors.pedagio}</ErrorMsg>}
               </InputWrapper>
@@ -296,6 +340,7 @@ export default function Order() {
                   type="text"
                   value={data?.adiantamento.replace(',', '.') || ''}
                   onChange={handleChange('adiantamento')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.adiantamento && <ErrorMsg>{errors.adiantamento}</ErrorMsg>}
               </InputWrapper>
@@ -307,6 +352,7 @@ export default function Order() {
                   type="text"
                   value={data?.abastecimento.replace(',', '.') || ''}
                   onChange={handleChange('abastecimento')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.abastecimento && <ErrorMsg>{errors.abastecimento}</ErrorMsg>}
               </InputWrapper>
@@ -319,6 +365,7 @@ export default function Order() {
                   type="text"
                   value={data?.cte || ''}
                   onChange={handleChange('cte')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.cte && <ErrorMsg>{errors.cte}</ErrorMsg>}
               </InputWrapper>
@@ -330,6 +377,7 @@ export default function Order() {
                   type="text"
                   value={data?.valorcte.replace(',', '.') || ''}
                   onChange={handleChange('valorcte')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.valorcte && <ErrorMsg>{errors.valorcte}</ErrorMsg>}
               </InputWrapper>
@@ -354,6 +402,7 @@ export default function Order() {
                   type="text"
                   value={data?.usuario || ''}
                   onChange={handleChange('usuario')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.usuario && <ErrorMsg>{errors.usuario}</ErrorMsg>}
               </InputWrapper>
@@ -366,25 +415,26 @@ export default function Order() {
                   type="text"
                   value={data?.observacao || ''}
                   onChange={handleChange('observacao')}
+                  disabled={functionBoolean}
                 ></Input>
                 {errors.observacao && <ErrorMsg>{errors.observacao}</ErrorMsg>}
               </InputWrapper>
               <Separate>:</Separate>
               <InputWrapper width={'220px'}>
-                <Input
-                  name="numeroordem"
-                  label="Ordem N°"
-                  type="text"
-                  disabled={true}
-                  value={'número da ordem'}
-                ></Input>
+                <Input name="numeroordem" label="Ordem N°" type="text" disabled={true} value={orderNumber}></Input>
               </InputWrapper>
             </LineContainer>
             <LineContainer>
               <ButtonContainer>
-                <Button type="submit" disabled={saveOrderLoading}>
-                  Salvar Ordem
-                </Button>
+                {functionBoolean === true ? (
+                  <Button onClick={refresh} disabled={saveOrderLoading}>
+                    Elaborar outra ordem
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={saveOrderLoading}>
+                    Salvar Ordem
+                  </Button>
+                )}
               </ButtonContainer>
             </LineContainer>
           </form>
