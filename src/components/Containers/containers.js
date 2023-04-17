@@ -15,10 +15,12 @@ export const MainContainer = styled.div`
 export const InputContainerEdit = styled.div`
   background: #ffffff;
   border-radius: 10px;
+  margin-bottom: 3%;
   padding: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
 `;
 
 export const InputContainer = styled.div`
@@ -29,6 +31,7 @@ export const InputContainer = styled.div`
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  margin-bottom: 3.5%;
 `;
 
 export const LineContainer = styled.div`
@@ -79,13 +82,33 @@ export const Summary = styled.div`
   margin-top: 3%;
 `;
 
+export const SummaryEnroll = styled.div`
+  border: 2px solid lightgrey;
+  padding: 10px 0 10px 15px;
+  border-radius: 5px;
+  margin-top: 3%;
+`;
+
 export const Function = styled.p`
   font-size: 12px;
   margin: 15px 40px 0px 40px;
   border: 2px solid lightgrey;
   border-radius: 5px;
   padding: 10px;
-  background-color: #E8E8E8;
+  background-color: #e8e8e8;
+  :hover {
+    text-decoration: underline;
+    cursor: pointer;
+  }
+`;
+
+export const FunctionEnroll = styled.button`
+  font-size: 12px;
+  margin: 10px 0 0 10px;
+  border: 2px solid lightgrey;
+  border-radius: 5px;
+  padding: 17px;
+  background-color: #e8e8e8;
   :hover {
     text-decoration: underline;
     cursor: pointer;

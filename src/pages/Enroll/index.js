@@ -11,6 +11,8 @@ import Link from '../../components/Link';
 
 import EventInfoContext from '../../contexts/EventInfoContext';
 
+import rodrimar from '../../assets/images/rodrimar.png';
+
 import useSignUp from '../../hooks/api/useSignUp';
 
 export default function Enroll() {
@@ -43,8 +45,7 @@ export default function Enroll() {
   return (
     <AuthLayout background={eventInfo.backgroundImageUrl}>
       <Row>
-        <img src={eventInfo.logoImageUrl} alt="Event Logo" width="60px" />
-        <Title>{eventInfo.title}</Title>
+        <img src={rodrimar} alt="Event Logo" width="300px" height="150px"/>
       </Row>
       <Row>
         <Label>Inscrição</Label>

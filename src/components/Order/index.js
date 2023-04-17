@@ -10,9 +10,9 @@ import DateFnsUtils from '@date-io/date-fns';
 import EventInfoContext from '../../contexts/EventInfoContext';
 import { useForm } from '../../hooks/useForm';
 
-import Input from '../../components/Form/Input';
+import Input from '../Form/Input';
 import Button from '../Form/Button';
-import Select from '../../components/Form/Select';
+import Select from '../Form/Select';
 import { MenuItem } from '@material-ui/core';
 import { ufList } from './ufList';
 import { CustomDatePicker } from './CustomDatePicker';
@@ -27,16 +27,18 @@ import {
   LineContainer,
   SubLineContainer,
   Function,
+  LineContainerEdit,
 } from '../Containers/containers';
 import useToken from '../../hooks/useToken';
 import { postOrder, searchOrders } from '../../services/orders';
+import { searchSenders } from '../../services/orderRelated';
 
 dayjs.extend(CustomParseFormat);
 
 export default function Order() {
-  //elaborar a opção de zerar os inputs para a criação de outra ordem;
-  //elaborar telas de inserção de novos motoristas, remetentes e destinatários.
-  //elaborar uma forma de deixar os inputs com masks desabilitados
+  //elaborar telas de inserção de novos motoristas, remetentes e destinatários (novos cadastros);
+  //elaborar a função de marcar se a ordem foi paga e se o motorista chegou de viagem;
+  //fazer o middleware de joi validation do post
   const navigate = useNavigate();
   const token = useToken();
   if (!token) {
@@ -45,7 +47,11 @@ export default function Order() {
 
   const [functionBoolean, setFunctionBoolean] = useState(false);
   const [saveOrderLoading, setSaveOrderLoading] = useState(false);
-  const [orderNumber, setOrderNumber] = useState('');
+  const [orders, setOrders] = useState([]);
+  const [remetentes, setRemetentes] = useState([]);
+  const [destinatario, setDestinatario] = useState([]);
+  const [remetenteInfo, setRemetenteInfo] = useState([]);
+  const [destinatarioInfo, setDestinatarioInfo] = useState([]);
 
   const { eventInfo } = useContext(EventInfoContext);
 
@@ -60,11 +66,13 @@ export default function Order() {
   }
 
   useEffect(() => {
-    async function getOrders() {
+    async function getAll() {
       const retrieveOrders = await searchOrders(token);
-      setOrderNumber(retrieveOrders.length + 1);
+      setOrders(retrieveOrders);
+      const retrieveSenders = await searchSenders(token);
+      setRemetentes(retrieveSenders);
     }
-    getOrders();
+    getAll();
   }, []);
 
   const { handleSubmit, handleChange, data, errors, setData, customHandleChange } = useForm({
@@ -150,10 +158,6 @@ export default function Order() {
       observacao: '',
     },
   });
-
-  function nextScreen() {
-    navigate('/edit');
-  }
 
   return (
     <MainContainer background={eventInfo.backgroundImageUrl}>
@@ -267,16 +271,28 @@ export default function Order() {
               </InputWrapper>
               <SubLineContainer>
                 <InputWrapper width={'290px'}>
-                  <Input
-                    name="placa"
-                    label="Placa"
-                    type="text"
-                    mask="PPP-0P00"
-                    formatChars={formatChars}
-                    value={data?.placa.toUpperCase() || ''}
-                    onChange={handleChange('placa')}
-                    maxLength="7"
-                  ></Input>
+                  {functionBoolean === false ? (
+                    <Input
+                      name="placa"
+                      label="Placa"
+                      type="text"
+                      mask="PPP-0P00"
+                      formatChars={formatChars}
+                      value={data?.placa.toUpperCase() || ''}
+                      onChange={handleChange('placa')}
+                      maxLength="7"
+                    ></Input>
+                  ) : (
+                    <Input
+                      name="placa"
+                      label="Placa"
+                      type="text"
+                      value={data?.placa.toUpperCase() || ''}
+                      onChange={handleChange('placa')}
+                      disabled={functionBoolean}
+                    ></Input>
+                  )}
+
                   {errors.placa && <ErrorMsg>{errors.placa}</ErrorMsg>}
                 </InputWrapper>
               </SubLineContainer>
@@ -383,15 +399,27 @@ export default function Order() {
               </InputWrapper>
               <Separate>:</Separate>
               <InputWrapper>
-                <Input
-                  name="data"
-                  label="Data"
-                  type="text"
-                  value={data?.data || ''}
-                  formatChars={formatChars}
-                  mask="00-00-0000"
-                  onChange={handleChange('data')}
-                ></Input>
+                {functionBoolean === false ? (
+                  <Input
+                    name="data"
+                    label="Data"
+                    type="text"
+                    value={data?.data || ''}
+                    formatChars={formatChars}
+                    mask="00-00-0000"
+                    onChange={handleChange('data')}
+                  ></Input>
+                ) : (
+                  <Input
+                    name="data"
+                    label="Data"
+                    type="text"
+                    value={data?.data || ''}
+                    disabled={functionBoolean}
+                    onChange={handleChange('data')}
+                  ></Input>
+                )}
+
                 {errors.data && <ErrorMsg>{errors.data}</ErrorMsg>}
               </InputWrapper>
               <Separate>:</Separate>
@@ -408,7 +436,7 @@ export default function Order() {
               </InputWrapper>
             </LineContainer>
             <LineContainer>
-              <InputWrapper width={'775px'}>
+              <InputWrapper width={'810px'}>
                 <Input
                   name="observacao"
                   label="Observação"
@@ -421,7 +449,13 @@ export default function Order() {
               </InputWrapper>
               <Separate>:</Separate>
               <InputWrapper width={'220px'}>
-                <Input name="numeroordem" label="Ordem N°" type="text" disabled={true} value={orderNumber}></Input>
+                <Input
+                  name="numeroordem"
+                  label="Ordem N°"
+                  type="text"
+                  disabled={true}
+                  value={orders.length + 1}
+                ></Input>
               </InputWrapper>
             </LineContainer>
             <LineContainer>
@@ -440,7 +474,10 @@ export default function Order() {
           </form>
         </MuiPickersUtilsProvider>
       </InputContainer>
-      <Function onClick={nextScreen}>Ir para a seleção de ordens</Function>
+      <LineContainerEdit>
+        <Function onClick={() => navigate('/ordens')}>Ir para a seleção de ordens</Function>
+        <Function onClick={() => navigate('/cadastros')}>Fazer novos cadastros</Function>
+      </LineContainerEdit>
     </MainContainer>
   );
 }

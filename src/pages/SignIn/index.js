@@ -12,6 +12,8 @@ import { Row, Title, Label } from '../../components/Auth';
 import EventInfoContext from '../../contexts/EventInfoContext';
 import UserContext from '../../contexts/UserContext';
 
+import rodrimar from '../../assets/images/rodrimar.png';
+
 import useSignIn from '../../hooks/api/useSignIn';
 
 export default function SignIn() {
@@ -33,7 +35,7 @@ export default function SignIn() {
       const userData = await signIn(username, password);
       setUserData(userData);
       toast('Login realizado com sucesso!');
-      navigate('/create');
+      navigate('/criar');
     } catch (err) {
       toast('Não foi possível fazer o login!');
     }
@@ -42,8 +44,7 @@ export default function SignIn() {
   return (
     <AuthLayout background={eventInfo.backgroundImageUrl}>
       <Row>
-        <img src={eventInfo.logoImageUrl} alt="Event Logo" width="60px" />
-        <Title>{eventInfo.title}</Title>
+        <img src={rodrimar} alt="Event Logo" width="300px" height="150px" />
       </Row>
       <Row>
         <Label>Entrar</Label>

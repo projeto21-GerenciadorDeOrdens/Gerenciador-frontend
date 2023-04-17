@@ -27,7 +27,7 @@ import {
   Function,
 } from '../Containers/containers';
 import useToken from '../../hooks/useToken';
-import { searchOrders } from '../../services/orders';
+import { deleteOrder, finishDriverTrip, payOrder, searchOrders } from '../../services/orders';
 
 export function Edit() {
   const { eventInfo } = useContext(EventInfoContext);
@@ -41,16 +41,19 @@ export function Edit() {
 
   const [numeroOrdem, setNumeroOrdem] = useState('0');
   const [boolSearch, setBoolSearch] = useState(false);
-  const [boolOrders, setBoolOrders] = useState(true);
-  const [orders, setOrders] = useState([{ name: 'Não há ordens', id: 1 }]);
+  const [MUIvalue, setMUIValue] = useState('Selecione');
+  const [orders, setOrders] = useState([{ none: 'none' }]);
   const [orderInfo, setOrderInfo] = useState({ none: 'none' });
+  const [boolButtons, setBoolButtons] = useState(false);
 
   useEffect(() => {
     async function getOrders() {
       const response = await searchOrders(token);
-      if (response.length !== 0) {
-        setBoolOrders(false);
+      if (response.length === 0) {
+        setMUIValue('0');
+        return;
       }
+      response.unshift({ id: 'Exibir todas' });
       setOrders(response);
     }
     getOrders();
@@ -61,19 +64,76 @@ export function Edit() {
       setBoolSearch(false);
       return;
     }
+    if (value === 'Exibir todas') {
+      setNumeroOrdem(value);
+      let newArr = orders;
+      newArr.shift();
+      setOrderInfo(newArr);
+      setBoolButtons(false);
+      setBoolSearch(true);
+      toast('Para editar ou deletar uma ordem, selecione-a individualmente!');
+      return;
+    }
     setNumeroOrdem(value);
     const newArr = orders.filter((e) => e.id == value);
     if (newArr.length === 0) {
+      console.log('chegando aqui');
       setBoolSearch(false);
+      setMUIValue('Não há ordens');
       return;
     }
     setOrderInfo(newArr);
+    setBoolButtons(true);
     setBoolSearch(true);
+    setMUIValue('');
   }
 
-  function backScreen() {
-    setNumeroOrdem(0);
-    navigate('/create');
+  async function finishTrip() {
+    try {
+      await finishDriverTrip(token, orderInfo[0].id);
+      const response = await searchOrders(token);
+      response.unshift({ id: 'Exibir todas' });
+      const newArr = response.filter((e) => e.id == numeroOrdem);
+      setOrderInfo(newArr);
+      toast('Viagem finalizada!');
+    } catch (error) {
+      toast('Não foi possível finalizar a viagem, verifique se ela já está finalizada');
+      console.log(error.statusText);
+    }
+  }
+
+  async function setPaidOrder() {
+    try {
+      await payOrder(token, orderInfo[0].id);
+      const response = await searchOrders(token);
+      response.unshift({ id: 'Exibir todas' });
+      const newArr = response.filter((e) => e.id == numeroOrdem);
+      setOrderInfo(newArr);
+      toast('A ordem foi paga!');
+    } catch (error) {
+      toast('Não foi possível pagar a ordem, verifique se ela já foi paga');
+      console.log(error);
+    }
+  }
+
+  async function excludeOrder() {
+    try {
+      await deleteOrder(token, orderInfo[0].id);
+      setBoolSearch(false);
+      const response = await searchOrders(token);
+      console.log(response);
+      if (response.length === 0) {
+        setMUIValue('0');
+        setOrders(response);
+        return;
+      }
+      response.unshift({ id: 'Exibir todas' });
+      setOrders(response);
+      toast('Ordem deletada');
+    } catch (error) {
+      console.log(error);
+      toast('Não foi possível deletar a ordem');
+    }
   }
 
   return (
@@ -89,8 +149,8 @@ export function Edit() {
               value={numeroOrdem}
               onChange={(e) => setInfo(e.target.value)}
             >
-              <MenuItem disabled={boolOrders}>
-                <em>Não há ordens!</em>
+              <MenuItem value={numeroOrdem}>
+                <em>{MUIvalue}</em>
               </MenuItem>
               {orders.map((o) => (
                 <MenuItem value={o.id} key={o.id}>
@@ -102,31 +162,51 @@ export function Edit() {
         </LineContainerEdit>
         {boolSearch === true ? (
           <>
-            <Summary>
-              <Word>De: {orderInfo[0].Sender.city}</Word>
-              <SummaryWord>Para: {orderInfo[0].Recipient.city}</SummaryWord>
+            {orderInfo.map((info) => (
+              <Summary>
+                <Word>Ordem N° {info.id}</Word>
+                <Word>Viagem finalizada: {info.driverFinishedService === true ? 'SIM' : 'NÃO'}</Word>
+                <Word>Ordem paga: {info.isPaid === true ? 'SIM' : 'NÃO'}</Word>
+                <Word>
+                  De: {info.Sender.city} - {info.Sender.state}
+                </Word>
+                <SummaryWord>
+                  Para: {info.Recipient.city} - {info.Recipient.state}
+                </SummaryWord>
 
-              <Word>Motorista: {orderInfo[0].Driver.name}</Word>
-              <SummaryWord>Placa: {orderInfo[0].Driver.plate}</SummaryWord>
+                <Word>Motorista: {info.Driver.name}</Word>
+                <SummaryWord>Placa: {info.Driver.plate}</SummaryWord>
 
-              <Word>Data: {dayjs(orderInfo[0].createdAt).format('DD-MM-YYYY')}</Word>
+                <Word>Data: {dayjs(info.createdAt).format('DD-MM-YYYY')}</Word>
 
-              <Word>
-                Saldo: $
-                {Number(orderInfo[0].freight) * (Number(orderInfo[0].weight) / 1000) -
-                  (Number(orderInfo[0].taxes) + Number(orderInfo[0].advance) + Number(orderInfo[0].gas))}
-              </Word>
-            </Summary>
+                <Word>
+                  Saldo: $
+                  {Number(info.freight) * (Number(info.weight) / 1000) -
+                    (Number(info.taxes) + Number(info.advance) + Number(info.gas))}
+                </Word>
+              </Summary>
+            ))}
+
             <LineContainerEdit>
-              <Function>Deletar ordem</Function>
-              <Function>Finalizar ordem</Function>
+              {boolButtons === true ? (
+                <>
+                  <Function onClick={finishTrip}>Finalizar viagem</Function>
+                  <Function onClick={setPaidOrder}>Marcar ordem como paga</Function>
+                  <Function onClick={excludeOrder}>Deletar ordem</Function>
+                </>
+              ) : (
+                ''
+              )}
             </LineContainerEdit>
           </>
         ) : (
           ''
         )}
       </InputContainerEdit>
-      <Function onClick={backScreen}>Voltar para a criação de ordem</Function>
+      <LineContainerEdit>
+        <Function onClick={() => navigate('/criar')}>Ir para a criação de ordem</Function>
+        <Function onClick={() => navigate('/cadastros')}>Fazer novos cadastros</Function>
+      </LineContainerEdit>
     </MainContainer>
   );
 }
