@@ -127,7 +127,7 @@ export default function Order() {
       };
 
       try {
-        await postOrder(token, body);
+        await postOrder(token);
         toast('Ordem salva com sucesso!');
         setFunctionBoolean(true);
       } catch (err) {

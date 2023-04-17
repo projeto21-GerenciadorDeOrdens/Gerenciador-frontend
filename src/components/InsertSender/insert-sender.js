@@ -51,7 +51,7 @@ export default function Senders() {
     0: '[0123456789]',
   };
 
-  const [sender, setSender] = useState([]);
+  const [sender, setSender] = useState('');
   const [boolSearchSender, setBoolSeachSender] = useState(false);
   const [filteredSender, setFilteredSender] = useState([]);
 

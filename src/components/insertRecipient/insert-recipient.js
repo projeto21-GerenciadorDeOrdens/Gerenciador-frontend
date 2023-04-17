@@ -46,7 +46,7 @@ export default function Recipients() {
 
   const { eventInfo } = useContext(EventInfoContext);
 
-  const [recipient, setRecipient] = useState([]);
+  const [recipient, setRecipient] = useState('');
   const [boolSearchRecipient, setBoolSeachRecipient] = useState(false);
   const [filteredRecipient, setFilteredRecipient] = useState([]);
 

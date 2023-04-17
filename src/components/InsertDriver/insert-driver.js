@@ -50,7 +50,7 @@ export default function Drivers() {
     0: '[0123456789]',
   };
 
-  const [driver, setDriver] = useState([]);
+  const [driver, setDriver] = useState('');
   const [boolSearchDriver, setBoolSeachDriver] = useState(false);
   const [filteredDriver, setFilteredDriver] = useState([]);
   const { handleSubmit, handleChange, data, errors, setData, customHandleChange } = useForm({
